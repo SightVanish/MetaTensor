@@ -1,6 +1,6 @@
 import abc
 import numpy as np
-from graph import default_graph
+from .graph import default_graph
 
 class Node(object):
     """

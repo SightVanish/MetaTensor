@@ -1,4 +1,5 @@
 import abc
+from unicodedata import name # Abstract base classes
 import numpy as np
 from .graph import default_graph
 
@@ -7,18 +8,17 @@ class Node(object):
     Base class for nodes in computing graph
     """
     def __init__(self, *parents, **kargs):
-        """
-        init node
-        """
         # set parameters
-        self.graph = kargs.get('graph', default_graph) # if 'graph' is not found in kargs, self.graph = default_graph
+        self.kargs = kargs
+         # if 'graph' is not found in kargs, self.graph = default_graph
+        self.graph = kargs.get('graph', default_graph)
         self.need_save = kargs.get('need_save', True)
         self.gen_node_name(**kargs)
 
         self.parents = list(parents)
         self.children = [] # init empty children list
-        self.value = None
-        self.jacobi = None
+        self.value = None # value of this node
+        self.jacobi = None # jacobi matrix of result node to this node
 
         # add children list backwards
         for parent in self.parents:
@@ -29,19 +29,19 @@ class Node(object):
 
     def get_parents(self):
         """
-        return all parents node of this node
+        Return all parent nodes.
         """
         return self.parents
     
     def get_children(self):
         """
-        return all children node of this node
+        Return all children nodes.
         """
         return self.children
     
     def gen_node_name(self, **kargs):
         """
-        generate node name
+        Renerate node name.
         """
         # If the node name is not specified in kargs, set default node name like 'MatMul:3'
         self.name = kargs.get('name', '{}:{}'.format(
@@ -53,7 +53,7 @@ class Node(object):
     
     def forward(self):
         """
-        forward computation
+        Forward computation.
         """
         # recursively call forward()
         for node in self.parents:
@@ -63,23 +63,20 @@ class Node(object):
 
     @abc.abstractmethod
     def compute(self):
-        """
-        abstract method, need to be implemented later
-        compute the value of this node based on its parents
+        """        
+        Compute the value of this node based on its parent nodes.
         """
 
     @abc.abstractmethod
     def get_jacobi(self, parent):
         """
-        abstract method, need to be implemented later
-        compute Jacobi=d(self)/d(parent)
+        Compute Jacobi of this node to each parent node.
         """
     
     def backward(self, result):
         """
-        backward computation
+        Backward computation. Compute Jacobi of result node to this node.
         """
-        # Jacobi=d(result)/d(self)
         if self.jacobi is None:
             if self is result:
                 self.jacobi = np.mat(np.eye(self.dimension())) # jacobi is identity matrix
@@ -92,26 +89,26 @@ class Node(object):
 
     def clear_jacobi(self):
         """
-        clear the jacobi of this node
+        Clear jacobi matrix of this node.
         """
         self.jacobi = None
 
     def dimension(self):
         """
-        return the size of this node
+        Return the size of this node.
         """
         # we only consider 2-D matrix
         return self.value.shape[0] * self.value.shape[1]
 
     def shape(self):
         """
-        return the shape of this node in tuple
+        Return the shape of this node.
         """
         return self.value.shape
 
     def reset_value(self, recursive=True):
         """
-        reset the values of this node and all its descendants
+        Reset the values of this node and all its descendants.
         """
         self.value = None
         if recursive:
@@ -125,23 +122,35 @@ class Variable(Node):
     """
     def __init__(self, dim, init=False, trainable=True, **kargs):
         """
-        init Variable
-        set the value of this variable randomly if init==True
+        Set the value of this variable randomly if init==True.
         """
         # dim is a tuple, like (height, width)
         super(Variable, self).__init__(**kargs)
-        
         self.dim = dim
         self.trainable = trainable
+
         if init:
             # init with normal distribution
             self.value = np.mat(np.random.normal(0, 0.001, self.dim))
 
     def set_value(self, value):
         """
-        set the value of this variable to given value
+        Set the value of this variable to given value.
         """
         assert isinstance(value, np.matrix) and value.shape == self.dim
 
+        # the value of this node is changed so all its decendants should be modified
         self.reset_value()
         self.value = value
+
+class name_scope(object):
+    # TODO
+    def __init__(self, name_scope):
+        self.name_scope = name_scope
+
+    def __enter__(self):
+        default_graph.name_scope = self.name_scope
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        default_graph.name_scope = None

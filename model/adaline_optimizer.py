@@ -34,7 +34,7 @@ Hyper-parameters.
 """
 num_epoch = 50
 lr = 1e-4 # learning rate
-batch_size = 10
+batch_size = 16
 
 
 """
@@ -49,7 +49,11 @@ predict = mt.ops.Step(output)
 loss = mt.ops.loss.PerceptionLoss(mt.ops.MatMul(label, output))
 
 # define optimizer
-optimizer = mt.optimizer.GradientDescent(mt.default_graph, loss, lr)
+# optimizer = mt.optimizer.GradientDescent(mt.default_graph, loss, lr)
+# optimizer = mt.optimizer.Momentum(mt.default_graph, loss, lr)
+# optimizer = mt.optimizer.AdaGrad(mt.default_graph, loss, lr)
+# optimizer = mt.optimizer.RMSProp(mt.default_graph, loss, lr)
+optimizer = mt.optimizer.Adam(mt.default_graph, loss, lr)
 
 cur_batch_size = 0
 

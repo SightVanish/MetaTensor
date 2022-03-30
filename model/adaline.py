@@ -40,13 +40,13 @@ batch_size = 10
 Construct computing graph.
 """
 # input
-x = mt.Variable(dim=(batch_size, 3), init=False, trainable=False)
+X = mt.Variable(dim=(batch_size, 3), init=False, trainable=False)
 
 # label
 label = mt.Variable(dim=(batch_size, 1), init=False, trainable=False)
 
 # weight
-w = mt.Variable(dim=(1, 3), init=True, trainable=True)
+w = mt.Variable(dim=(3, 1), init=True, trainable=True)
 
 # bias
 b = mt.Variable(dim=(1, 1), init=True, trainable=True)
@@ -55,17 +55,17 @@ b = mt.Variable(dim=(1, 1), init=True, trainable=True)
 ones = mt.Variable(dim=(batch_size, 1), init=False, trainable=False)
 ones.set_value(np.mat(np.ones(batch_size)).T) # shape = (batch_size,)
 
-bias = mt.ops.ScalarMultiply(b, ones) # TODO:
+bias = mt.ops.ScalarMultiply(b, ones)
 
 """
 Model part: y = step(w * x + b).
 """
 
-output = mt.ops.Add(mt.ops.MatMul(w, x), bias)
+output = mt.ops.Add(mt.ops.MatMul(X, w), bias)
 predict = mt.ops.Step(output)
 
 # loss
-loss = mt.ops.loss.PerceptionLoss(mt.ops.MatMul(label, output))
+loss = mt.ops.loss.PerceptionLoss(mt.ops.Multiply(label, output))
 
 # average loss value for a batch
 B = mt.core.Variable(dim=(1, batch_size), init=False, trainable=False)
@@ -79,22 +79,22 @@ for epoch in range(num_epoch):
     start_time = time.time()
     for i in range(0, len(train_set), batch_size):
         feature = np.mat(train_set[i:i + batch_size, :-1]) # feature.shap = [batch_size, feature dim]
-        l = np.mat(train_set[i:i + batch_size, -1]) # label.shape = [batch_size, label dim]
+        l = np.mat(train_set[i:i + batch_size, -1]).T # label.shape = [batch_size, label dim]
 
-        x.set_value(feature)
+        X.set_value(feature)
         label.set_value(l)
 
         # forward
         mean_loss.forward()
 
         # compute jacobi matrix
-        w.backward(loss)
-        b.backward(loss)
+        w.backward(mean_loss)
+        b.backward(mean_loss)
 
         # update value
         w.set_value(w.value - lr * w.jacobi.T.reshape(w.shape()))
-        b.set_value(b.value - lr * b.jacobi.T.reshape(b.shape()))
 
+        b.set_value(b.value - lr * b.jacobi.T.reshape(b.shape()))
         # clear jacobi after updating trainable parameters
         mt.default_graph.clear_jacobi()
     
@@ -102,12 +102,10 @@ for epoch in range(num_epoch):
     # varify model precision for each epoch
     pred = []
     for i in range(0, len(train_set), batch_size):
-        feature = np.mat(train_set[i, :-1])
-        x.set_value(feature)
-
+        feature = np.mat(train_set[i:i+batch_size, :-1])
+        X.set_value(feature)
         predict.forward()
-        pred.append(predict.value.A.ravel()) # turn np.mat to np.array and flatten it
-        
+        pred.extend(predict.value.A.ravel()) # it must be extend, not append
     # the output of model is 1/0 so we need to convert the result to 1/-1
     pred = np.array(pred) * 2 - 1
 

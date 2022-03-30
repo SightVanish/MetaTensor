@@ -25,7 +25,7 @@ class Operator(Node):
 
 class MatMul(Operator):
     """
-    Matrix mulitiplication
+    Matrix product.
     """
     # C = A * B
     # A.shape = (m, n), B.shape = (n, k), C.shape = (m, k)
@@ -34,6 +34,7 @@ class MatMul(Operator):
         self.value = self.parents[0].value * self.parents[1].value # self.value is numpy.array
 
     def get_jacobi(self, parent):
+        assert parent in self.parents
         zeros = np.mat(np.zeros((self.dimension(), parent.dimension())))
         if parent is self.parents[0]: 
             # Jacobi(C/A).shape = (mk, mn)
@@ -45,6 +46,38 @@ class MatMul(Operator):
             col_sort = np.arange(parent.dimension()).reshape(parent.shape()[::-1]).T.ravel()
             return jacobi[row_sort, :][:, col_sort]
 
+class ScalarMultiply(Operator):
+    """
+    Matrix product. Parent[0].shape = 1x1.
+    """
+    def compute(self):
+        assert self.parents[0].shape() == (1, 1) # make sure the first variable is a scalar
+        self.value = np.multiply(self.parents[0].value, self.parents[1].value)
+    
+    def get_jacobi(self, parent):
+        assert parent in self.parents
+        if parent is self.parents[0]:
+            # shape = (parent[1].dimension, 1)
+            return self.parents[1].value.flatten().T # flatten() will allocate a new memory space.
+        else:
+            # shape = (parent[1].dimension, parent[1].dimension)
+            return np.mat(np.eye(self.parents[1].dimension())) * self.parents[0].value[0, 0]
+
+class Multiply(Operator):
+    """
+    Matrix dot product.
+    """
+    def compute(self):
+        assert self.parents[0].shape() == self.parents[1].shape()
+        self.value = np.multiply(self.parents[0].value, self.parents[1].value)
+
+    def get_jacobi(self, parent):
+        assert parent in self.parents
+        if parent is self.parents[0]:
+            return np.diag(self.parents[1].value.A.ravel()) # .A1 = .A.ravel()
+        else:
+            return np.diag(self.parents[0].value.A.ravel())
+
 class Add(Operator):
     def compute(self):
         """
@@ -55,6 +88,7 @@ class Add(Operator):
             self.value += parent.value
     
     def get_jacobi(self, parent):
+        assert parent in self.parents
         # jacobi is identiy matrix for all parents
         return np.mat(np.eye(self.dimension()))
 
@@ -66,6 +100,7 @@ class Step(Operator):
         self.value = np.mat(np.where(self.parents[0].value > 0.0, 1.0, 0.0))
     
     def get_jacobi(self, parent):
+        assert parent in self.parents
         np.mat(np.eye(self.dimension()))
         return super().get_jacobi(parent)
 

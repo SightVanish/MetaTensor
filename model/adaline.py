@@ -71,10 +71,10 @@ loss = mt.ops.loss.PerceptionLoss(mt.ops.Multiply(label, output))
 B = mt.core.Variable(dim=(1, batch_size), init=False, trainable=False)
 B.set_value(1 / batch_size * np.mat(np.ones(batch_size)))
 mean_loss = mt.ops.MatMul(B, loss)
-"""
-Training part
-"""
 
+"""
+Training part, without optimizer.
+"""
 for epoch in range(num_epoch):
     start_time = time.time()
     for i in range(0, len(train_set), batch_size):

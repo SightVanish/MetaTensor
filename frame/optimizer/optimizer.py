@@ -5,7 +5,7 @@ from ..core.utils import get_node_from_graph
 
 class Optimizer(Node):
     """
-    Base class for optimizers.
+    Base class for optimizers. target is the node we want to optimize.
     """
     def __init__(self, graph, target, learning_rate):
         assert isinstance(target, Node) and isinstance(graph, Graph)
@@ -85,4 +85,16 @@ class Optimizer(Node):
                     self.acc_gradient[node] = gradient
                 else:
                     self.acc_gradient[node] += gradient
+
+class GradientDescent(Optimizer):
+    """
+    Gradient descenting optimizer.
+    """
+    def _update(self):
+        for node in self.graph.nodes:
+            if isinstance(node, Variable) and node.trainable:
+                gradient = self.get_gradient(node)
+                # update node value
+                node.set_value(node.value - self.learning_rate * gradient)
+
 

@@ -144,7 +144,6 @@ class Variable(Node):
         self.value = value
 
 class name_scope(object):
-    # TODO
     def __init__(self, name_scope):
         self.name_scope = name_scope
 

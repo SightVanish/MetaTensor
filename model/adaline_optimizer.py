@@ -3,6 +3,22 @@ sys.path.append('..')
 import numpy as np
 import frame as mt
 import time
+import argparse
+
+"""
+Parser.
+"""
+parser = argparse.ArgumentParser()
+parser.add_argument('--num_epoch', type=int, default='50')
+parser.add_argument('--lr', type=float, default='1e-3', help='learning rate')
+parser.add_argument('--batch_size', type=int, default=16)
+args = parser.parse_args()
+"""
+Hyper-parameters.
+"""
+num_epoch = args.num_epoch
+lr = args.lr
+batch_size = args.batch_size
 
 """
 Generate training data.
@@ -29,13 +45,6 @@ train_set = np.array([np.concatenate((male_heights, female_heights)),
                       np.concatenate((male_labels, female_labels)),]).T
 
 np.random.shuffle(train_set)
-"""
-Hyper-parameters.
-"""
-num_epoch = 50
-lr = 1e-4 # learning rate
-batch_size = 16
-
 
 """
 Construct computing graph.
@@ -45,8 +54,11 @@ label = mt.core.Variable(dim=(1, 1), init=False, trainable=False)
 w = mt.core.Variable(dim=(1, 3), init=True, trainable=True)
 b = mt.core.Variable(dim=(1, 1), init=True, trainable=True)
 output = mt.ops.Add(mt.ops.MatMul(w, x), b)
-predict = mt.ops.Step(output)
-loss = mt.ops.loss.PerceptionLoss(mt.ops.MatMul(label, output))
+# predict = mt.ops.Step(output) # predict = 1/0 
+predict = mt.ops.Logistic(output) # predict = 0~1
+
+# loss = mt.ops.loss.PerceptionLoss(mt.ops.MatMul(label, output))
+loss = mt.ops.loss.LogLoss(mt.ops.MatMul(label, output))
 
 # define optimizer
 # optimizer = mt.optimizer.GradientDescent(mt.default_graph, loss, lr)
@@ -56,7 +68,6 @@ loss = mt.ops.loss.PerceptionLoss(mt.ops.MatMul(label, output))
 optimizer = mt.optimizer.Adam(mt.default_graph, loss, lr)
 
 cur_batch_size = 0
-
 """
 Training part, with optimizer.
 """
@@ -83,7 +94,8 @@ for epoch in range(num_epoch):
         x.set_value(features)
         predict.forward()
         pred.append(predict.value[0, 0])
-    pred = np.array(pred) * 2 - 1
+    # pred = np.array(pred) * 2 - 1 # Step function
+    pred = (np.array(pred) > 0.5).astype(np.int32) * 2 - 1 # Logistic function
     accuracy = (train_set[:, -1] == pred).astype(np.int32).sum() / len(train_set)
     print("epoch: {:2d},  {:.3f} sec/epoch,  accuracy: {:.3f}".format(epoch + 1, end_time - start_time, accuracy))
 

@@ -127,8 +127,9 @@ class SoftMax(Operator):
     @staticmethod
     def softmax(a):
         # a is numpy array/matrix
-        ep = np.power(np.e, np.where(a > 1e3, 1e3, a))
-        return ep / np.sum(np.where(a > 1e3, 1e3, a))
+        a[a > 1e3] = 1e3 # you have to change the value of a
+        ep = np.power(np.e, a)
+        return ep / np.sum(ep)
     
     def compute(self):
         assert len(self.parents) == 1
@@ -136,3 +137,4 @@ class SoftMax(Operator):
 
     def get_jacobi(self, parent):
         raise NotImplementedError("SoftMax node is only used for prediction. Do not use its get_jacobi.")
+

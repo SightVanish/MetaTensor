@@ -1,5 +1,6 @@
 import numpy as np
 from ..core import Node
+from .ops import SoftMax
 
 class LossFunction(Node):
     """
@@ -32,3 +33,21 @@ class LogLoss(LossFunction):
         x = self.parents[0].value
         diag = -1 / (1 + np.power(np.e, np.where(x > 1e3, 1e3, x)))
         return np.diag(diag.ravel())
+
+class CrossEntropyWithSoftMax(LossFunction):
+    """
+    Cross entropy loss. It has to work with activation function Softmax. parent[1] is one-hot encoded label.
+    """
+    def compute(self):
+        assert len(self.parents) == 2
+        prob = SoftMax.softmax(self.parents[0].value)
+        self.value = np.mat(-np.sum(np.multiply(self.parents[1].value, np.log(prob + 1e-10)))) # 1e-10 to avoid log0
+
+        
+    def get_jacobi(self, parent):
+        prob = SoftMax.softmax(self.parents[0].value)
+        if parent is self.parents[0]:
+            return (prob - self.parents[1].value).T
+        else:
+            # jacobi for one-hot encoded label should not be called.
+            return (-np.log(prob + 1e-10)).T

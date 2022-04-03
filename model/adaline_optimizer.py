@@ -67,11 +67,12 @@ loss = mt.ops.loss.LogLoss(mt.ops.MatMul(label, output))
 # optimizer = mt.optimizer.RMSProp(mt.default_graph, loss, lr)
 optimizer = mt.optimizer.Adam(mt.default_graph, loss, lr)
 
-cur_batch_size = 0
+
 """
 Training part, with optimizer.
 """
 for epoch in range(num_epoch):
+    cur_batch_size = 0
     start_time = time.time()
     for i in range(len(train_set)):
         features = np.mat(train_set[i, :-1]).T
@@ -81,7 +82,7 @@ for epoch in range(num_epoch):
 
         # optimizr will be responsible for forward and backward propagation
         optimizer.one_step()
-
+        
         cur_batch_size += 1
         if (cur_batch_size == batch_size):
             optimizer.update()
@@ -90,8 +91,8 @@ for epoch in range(num_epoch):
     end_time = time.time()
     pred = []
     for i in range(len(train_set)):
-        features = np.mat(train_set[i, :-1]).T
-        x.set_value(features)
+        feature = np.mat(train_set[i, :-1]).T
+        x.set_value(feature)
         predict.forward()
         pred.append(predict.value[0, 0])
     # pred = np.array(pred) * 2 - 1 # Step function

@@ -92,11 +92,13 @@ class Add(Operator):
         # jacobi is identiy matrix for all parents
         return np.mat(np.eye(self.dimension()))
 
+# activation function
 class Step(Operator):
     """
     Step function. y = 1 if x > 0, y = 0 if x<=0.
     """
     def compute(self):
+        assert len(self.parents) == 1
         self.value = np.mat(np.where(self.parents[0].value > 0.0, 1.0, 0.0))
     
     def get_jacobi(self, parent):
@@ -104,3 +106,33 @@ class Step(Operator):
         np.mat(np.eye(self.dimension()))
         return super().get_jacobi(parent)
 
+class Logistic(Operator):
+    """
+    Logistic function. y = 1 / (1 + e^(-x)).
+    """
+    def compute(self):
+        assert len(self.parents) == 1
+        x = self.parents[0].value
+        self.value = np.mat(1.0 / (1.0 + np.power(np.e, np.where(-x > 1e3, 1e3, -x))))
+    
+    def get_jacobi(self, parent):
+        # jacobi = (e^(-x) / (1 + e^(-x))^2) = Logistic * (1 - Logistic).
+        return np.diag(np.mat(np.multiply(self.value, 1 - self.value)).A1)
+
+class SoftMax(Operator):
+    """
+    Softmax function.
+    """
+    # this method can be called without instantiating this class.
+    @staticmethod
+    def softmax(a):
+        # a is numpy array/matrix
+        ep = np.power(np.e, np.where(a > 1e3, 1e3, a))
+        return ep / np.sum(np.where(a > 1e3, 1e3, a))
+    
+    def compute(self):
+        assert len(self.parents) == 1
+        self.value = SoftMax.softmax(self.parents[0].value)
+
+    def get_jacobi(self, parent):
+        raise NotImplementedError("SoftMax node is only used for prediction. Do not use its get_jacobi.")

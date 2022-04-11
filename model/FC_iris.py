@@ -11,8 +11,8 @@ import time
 Parser.
 """
 parser = argparse.ArgumentParser()
-parser.add_argument('--num_epoch', type=int, default='50')
-parser.add_argument('--lr', type=float, default='1e-2', help='learning rate')
+parser.add_argument('--num_epoch', type=int, default=50)
+parser.add_argument('--lr', type=float, default=1e-2, help='learning rate')
 parser.add_argument('--batch_size', type=int, default=16)
 args = parser.parse_args()
 """
@@ -76,8 +76,8 @@ for epoch in range(num_epoch):
     for i in range(len(train_set)):
         feature = np.mat(train_set[i, :]).T
         x.set_value(feature)
-        predict.forward() # shape = (3, 1)
+        predict.forward()
         pred.append(predict.value.A.ravel())
     pred = np.array(pred).argmax(axis=1)
     accuracy = (number_label == pred).astype(np.int32).sum() / len(data)
-    print("epoch: {:2d},  {:.3f} sec/epoch,  accuracy: {:.3f}".format(epoch + 1, end_time - start_time, accuracy))
+    print("epoch: {:3d},  {:.3f} sec/epoch,  accuracy: {:.3f}".format(epoch + 1, end_time - start_time, accuracy))

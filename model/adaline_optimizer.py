@@ -9,8 +9,8 @@ import argparse
 Parser.
 """
 parser = argparse.ArgumentParser()
-parser.add_argument('--num_epoch', type=int, default='50')
-parser.add_argument('--lr', type=float, default='1e-3', help='learning rate')
+parser.add_argument('--num_epoch', type=int, default=50)
+parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--batch_size', type=int, default=16)
 args = parser.parse_args()
 """

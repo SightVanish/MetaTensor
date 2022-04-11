@@ -15,5 +15,4 @@ def FC(input, input_size, output_size, activation):
     elif activation == "Logistic":
         return Logistic(affine)
     else:
-        print(activation + " is not supported.")
-        raise ValueError
+        return affine

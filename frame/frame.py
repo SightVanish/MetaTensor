@@ -3,6 +3,7 @@ from frame.core.utils import get_node_from_graph
 from . import core
 from . import ops
 from . import optimizer
+from . import layer
 
 default_graph = core.default_graph
 get_node_from_graph = core.get_node_from_graph

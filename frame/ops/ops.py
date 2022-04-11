@@ -1,3 +1,4 @@
+from webbrowser import Opera
 import numpy as np
 from ..core.node import Node
 
@@ -136,5 +137,25 @@ class SoftMax(Operator):
         self.value = SoftMax.softmax(self.parents[0].value)
 
     def get_jacobi(self, parent):
-        raise NotImplementedError("SoftMax node is only used for prediction. Do not use its get_jacobi.")
+        print("SoftMax node is only used for prediction. Do not use its get_jacobi.")
+        raise NotImplementedError
+
+class ReLU(Operator):
+    """
+    Rectified Linear Unit. This is actually leaky-ReLU.
+    """
+    nslope = 0.1 # slope of the negative x-axis
+    def compute(self):
+        assert len(self.parents) == 1
+        self.value = np.mat(
+            np.where(self.parents[0].value > 0.0, 
+                     self.parents[0].value, 
+                     self.nslope * self.parents[0].value))
+    
+    def get_jacobi(self, parent):
+        return np.diag(np.where(self.parents[0].value.A1 > 0.0, 1.0, self.nslope))
+
+
+
+
 

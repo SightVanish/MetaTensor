@@ -91,7 +91,7 @@ for epoch in range(30):
     pred = []
     
     # 遍历训练集，计算当前模型对每个样本的预测值
-    for i in range(len(X)//4):
+    for i in range(len(X[:1000])):
                 
         feature = np.mat(X[i]).T
         x.set_value(feature)
@@ -103,7 +103,7 @@ for epoch in range(30):
     pred = np.array(pred).argmax(axis=1)  # 取最大概率对应的类别为预测类别
     
     # 判断预测结果与样本标签相同的数量与训练集总数量之比，即模型预测的正确率
-    accuracy = (y == pred).astype(np.int).sum() / len(X)
+    accuracy = (y[:1000] == pred).astype(np.int).sum() / len(X)
        
     # 打印当前epoch数和模型在训练集上的正确率
     print("epoch: {:d}, accuracy: {:.3f}".format(epoch + 1, accuracy))

@@ -72,11 +72,11 @@ for epoch in range(num_epoch):
 
     end_time = time.time()
     pred = []
-    for i in range(len(X)//4):
+    for i in range(len(X[:1000])):
         feature = np.mat(X[i]).T
         x.set_value(feature)
         predict.forward()
         pred.append(predict.value.A.ravel())
     pred = np.array(pred).argmax(axis=1)
-    accuracy = (y == pred).astype(np.int32).sum() / len(X)
-    print("epoch: {:3d},  {:.3f} sec/epoch,  accuracy: {:.3f}".format(epoch + 1, end_time - start_time, accuracy))
+    accuracy = (y[:1000] == pred).astype(np.int32).sum() / len(X)
+    print("epoch: {:d},  {:.3f} sec/epoch,  accuracy: {:.3f}".format(epoch + 1, end_time - start_time, accuracy))

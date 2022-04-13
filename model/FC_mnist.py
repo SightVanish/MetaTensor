@@ -36,9 +36,10 @@ Generate training input.
 """
 x = mt.core.Variable(dim=(784, 1), init=False, trainable=False)
 label = mt.core.Variable(dim=(10, 1), init=False, trainable=False)
-hidden1 = mt.layer.FC(x, 784, 100, "ReLU")
-hidden2 = mt.layer.FC(hidden1, 100, 20, "ReLU")
-output = mt.layer.FC(hidden2, 20, 10, None)
+# hidden1 = mt.layer.FC(x, 784, 100, "ReLU")
+# hidden2 = mt.layer.FC(hidden1, 100, 20, "ReLU")
+# output = mt.layer.FC(hidden2, 20, 10, None)
+output = mt.layer.FC(x, 784, 10, None)
 
 predict = mt.ops.SoftMax(output)
 loss = mt.ops.loss.CrossEntropyWithSoftMax(output, label)

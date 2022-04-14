@@ -1,4 +1,5 @@
 from webbrowser import Opera
+from joblib import parallel_backend
 import numpy as np
 from ..core.node import Node
 
@@ -154,6 +155,50 @@ class ReLU(Operator):
     
     def get_jacobi(self, parent):
         return np.diag(np.where(self.parents[0].value.A1 > 0.0, 1.0, self.nslope))
+
+# tensor operator
+class Reshape(Operator):
+    """
+    Change the shape of matrix. Parameters: shape should be a tuple.
+    """
+    def __init__(self, *parents, **kargs):
+        super().__init__(*parents, **kargs)
+        
+        self.new_shape = kargs.get('shape')
+        assert isinstance(self.new_shape, tuple) and len(self.new_shape) == 2
+    
+    def compute(self):
+        # change shape in numpy
+        self.value = self.parents[0].value.reshape(self.new_shape)
+
+    def get_jacobi(self, parent):
+        # jacobi is identity matrix
+        assert parent is self.parents[0]
+        assert len(self.parents) == 1
+        return np.mat(np.eye(self.dimension))
+
+class Concat(Operator):
+    """
+    Concatenate nodes to one node.
+    """
+    def compute(self):
+        assert len(self.parents) > 1
+        # axis=1 only works for np.mat
+        self.value = np.concatenate([p.value.flatten() for p in self.parents], axis=1).T # shape = (num_parents*len_parent[0])
+
+    def get_jacobi(self, parent):
+        assert parent in self.parents
+        dims = [p.dimension() for p in self.parents]
+        index = self.parents.index(parent)
+        dim = parent.dimension()
+
+        assert dim == dims[index]
+        jacobi = np.mat(np.zeros((self.dimension(), dim)))
+        
+        # only part of jacobi will be assigned as identity matrix
+        start_row = int(np.sum(dims[:index]))
+        end_row = start_row + dim
+        jacobi[start_row:end_row, :] = np.eye(dim)
 
 
 

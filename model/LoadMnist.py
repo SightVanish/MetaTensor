@@ -4,7 +4,6 @@ import numpy as np
 import gzip
 import sys
 def load_mnist_train(path):
- 
     labels_path = os.path.join(path,'train-labels-idx1-ubyte.gz')
     images_path = os.path.join(path,'train-images-idx3-ubyte.gz')
     with gzip.open(labels_path, 'rb') as lbpath:

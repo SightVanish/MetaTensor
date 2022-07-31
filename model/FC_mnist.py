@@ -1,8 +1,6 @@
-from mimetypes import init
 import sys
 sys.path.append('..')
 import numpy as np
-from sklearn.datasets import fetch_openml
 from sklearn.preprocessing import OneHotEncoder
 import frame as mt
 import time
@@ -34,7 +32,8 @@ one_hot_label = OneHotEncoder(sparse=False).fit_transform(y.reshape(-1, 1))
 """
 Generate training input.
 """
-x = mt.core.Variable(dim=leaim=(10, 1), init=False, trainable=False)
+x = mt.core.Variable(dim=(784, 1), init=False, trainable=False)
+label = mt.core.Variable(dim=(10, 1), init=False, trainable=False)
 # hidden1 = mt.layer.FC(x, 784, 100, "ReLU")
 # hidden2 = mt.layer.FC(hidden1, 100, 20, "ReLU")
 # output = mt.layer.FC(hidden2, 20, 10, None)
@@ -78,5 +77,5 @@ for epoch in range(num_epoch):
         predict.forward()
         pred.append(predict.value.A.ravel())
     pred = np.array(pred).argmax(axis=1)
-    accuracy = (y[:1000] == pred).astype(np.int32).sum() / len(X)
+    accuracy = (y[:1000] == pred).astype(np.int32).sum() / 1000
     print("epoch: {:d},  {:.3f} sec/epoch,  accuracy: {:.3f}".format(epoch + 1, end_time - start_time, accuracy))

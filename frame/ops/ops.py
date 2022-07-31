@@ -175,7 +175,7 @@ class Reshape(Operator):
         # jacobi is identity matrix
         assert parent is self.parents[0]
         assert len(self.parents) == 1
-        return np.mat(np.eye(self.dimension))
+        return np.mat(np.eye(self.dimension()))
 
 class Concat(Operator):
     """

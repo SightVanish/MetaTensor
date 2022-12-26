@@ -1,7 +1,7 @@
 import sys
 sys.path.append('..')
 import numpy as np
-import frame as mt
+import metatensor as mt
 import time
 import argparse
 

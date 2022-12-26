@@ -1,5 +1,3 @@
-from frame.core.node import Variable, name_scope
-from frame.core.utils import get_node_from_graph
 from . import core
 from . import ops
 from . import optimizer

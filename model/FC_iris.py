@@ -3,7 +3,7 @@ sys.path.append('..')
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-import frame as mt
+import metatensor as mt
 import argparse
 import time
 

@@ -4,7 +4,7 @@ Construct quadratic features manually.
 import sys
 sys.path.append('..')
 import numpy as np
-import frame as mt
+import metatensor as mt
 from sklearn.datasets import make_circles
 import argparse
 import time
@@ -38,14 +38,16 @@ label = mt.core.Variable(dim=(1,1), init=False, trainable=False)
 b = mt.core.Variable(dim=(1,1), init=True, trainable=True)
 
 if use_quadratic:
-    x2 = mt.ops.Reshape(mt.ops.MatMul(x1, mt.ops.Reshape(x1, shape=(1,2))), shape=(4,1)) # x2 = x1 * x1.T
-    x = mt.ops.Concat(x1, x2)
+    x2 = mt.ops.Reshape(
+        mt.ops.MatMul(x1, mt.ops.Reshape(x1, shape=(1,2))),
+        shape=(4,1)) # x2 = x1 * x1.T
+    x = mt.ops.Concat(x1, x2) # x.shape = (6, 1)
     w = mt.core.Variable(dim=(1,6), init=True, trainable=True)
 else:
     x = x1
     w = mt.core.Variable(dim=(1,2), init=True, trainable=True)
 
-output = mt.ops.Add(mt.ops.MatMul(w, x), b)
+output = mt.ops.Add(mt.ops.MatMul(w, x), b) # w * x + b
 predict = mt.ops.Logistic(output)
 
 loss = mt.ops.loss.LogLoss(mt.ops.Multiply(label, output))

@@ -2,7 +2,7 @@ import sys
 sys.path.append('..')
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
-import frame as mt
+import metatensor as mt
 import time
 import argparse
 from LoadMnist import load_mnist_train

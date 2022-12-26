@@ -1,2 +1,8 @@
-**/__pycache__
+__pycache__/
+metatensor/__pycache__/
+metatensor/core/__pycache__/
+metatensor/layer/__pycache__/
+metatensor/ops/__pycache__/
+metatensor/optimizer/__pycache__/
 .DS_Store
+

@@ -201,7 +201,26 @@ class Concat(Operator):
         jacobi[start_row:end_row, :] = np.eye(dim)
         return jacobi
 
-
-
-
-
+class Welding(Operator):
+    """
+    This node can be welded to any node.
+    """
+    def compute(self):
+        assert len(self.parents) == 1 and self.parents[0] is not None
+        self.value = self.parents[0].value
+    
+    def get_jacobi(self, parent):
+        assert parent is self.parents[0]
+        return np.mat(np.eye(self.dimension()))
+    
+    def weld(self, node):
+        """
+        Weld this node to input node.
+        """
+        # unweld
+        if len(self.parents) == 1 and self.parents[0] is not None:
+            self.parents[0].children.remove(self)
+        self.parents.clear()
+        # weld
+        self.parents.append(node)
+        node.children.append(self)

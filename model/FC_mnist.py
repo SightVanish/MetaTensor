@@ -47,7 +47,7 @@ optimizer = mt.optimizer.Adam(mt.default_graph, loss, lr)
 Training part.
 """
 for epoch in range(num_epoch):
-    cur_batch_size = 0
+    batch_count = 0
     start_time = time.time()
     iter_start_time = time.time()
     for i in range(len(X)):
@@ -60,14 +60,14 @@ for epoch in range(num_epoch):
         # optimizr will be responsible for forward and backward propagation
         optimizer.one_step()
 
-        cur_batch_size += 1
-        if (cur_batch_size == batch_size):
+        batch_count += 1
+        if (batch_count == batch_size):
             iter_end_time = time.time()
             print("epoch: {:d}, {:.3f} sec/iter, iter: {:d}/{:d}, loss: {:3f}".format(epoch + 1, iter_end_time - iter_start_time, i + 1, len(X), loss.value[0, 0]))
             iter_start_time = time.time()
 
             optimizer.update()
-            cur_batch_size = 0
+            batch_count = 0
 
     end_time = time.time()
     pred = []

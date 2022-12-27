@@ -72,7 +72,7 @@ optimizer = mt.optimizer.Adam(mt.default_graph, loss, lr)
 Training part, with optimizer.
 """
 for epoch in range(num_epoch):
-    cur_batch_size = 0
+    batch_count = 0
     start_time = time.time()
     for i in range(len(train_set)):
         features = np.mat(train_set[i, :-1]).T
@@ -83,10 +83,10 @@ for epoch in range(num_epoch):
         # optimizr will be responsible for forward and backward propagation
         optimizer.one_step()
         
-        cur_batch_size += 1
-        if (cur_batch_size == batch_size):
+        batch_count += 1
+        if (batch_count == batch_size):
             optimizer.update()
-            cur_batch_size = 0
+            batch_count = 0
 
     end_time = time.time()
     pred = []

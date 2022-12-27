@@ -1,19 +1,18 @@
-# Factorization Machine -- Recommender
 import sys
 sys.path.append('..')
 import numpy as np
 import metatensor as mt
 import time
 import argparse
-from sklearn.datasets import make_circles
+from sklearn.datasets import make_classification
 """
 Parser.
 """
 parser = argparse.ArgumentParser()
 parser.add_argument('--num_epoch', type=int, default=8)
-parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
+parser.add_argument('--lr', type=float, default=5e-3, help='learning rate')
 parser.add_argument('--batch_size', type=int, default=16)
-parser.add_argument('--k', type=int, default=2) # size of hidden vector
+parser.add_argument('--k', type=int, default=20) # size of hidden vector
 args = parser.parse_args()
 """
 Hyper-parameters.
@@ -25,32 +24,30 @@ k = args.k
 """
 Generate training data.
 """
-X, y = make_circles(600, noise=0.1, factor=0.2)
+dimension = 60 # feature dimension
+X, y = make_classification(600, dimension, n_informative=20) # only 20 dimensions are informative
 y = y * 2 - 1
-dimension = 20 # feature dimension
-# add noise features
-X = np.concatenate([X, np.random.normal(0.0, 0.01, (600, dimension-2))], axis=1)
+
 """
 Generate training input.
 """
 x1 = mt.core.Variable(dim=(dimension, 1), init=False, trainable=False) # linear term
 label = mt.core.Variable(dim=(1, 1), init=False, trainable=False) # label
 w = mt.core.Variable(dim=(1, dimension), init=True, trainable=True) # linear weight
-H = mt.core.Variable(dim=(k, dimension), init=True, trainable=True) # hidden weight
-HTH = mt.ops.MatMul(mt.ops.Reshape(H, shape=(dimension, k)), H) # H^T * H
+E = mt.core.Variable(dim=(k, dimension), init=True, trainable=True) # embedding vector
 b = mt.core.Variable(dim=(1, 1), init=True, trainable=True) # bias
 
-# w*x1 + x1^T*H^T*H*x1 + b
-output = mt.ops.Add(
-    # linear term
-    mt.ops.MatMul(w, x1), 
-    # quadratic term
-    mt.ops.MatMul(
-        mt.ops.Reshape(x1, shape=(1, dimension)),
-        mt.ops.MatMul(HTH, x1)),
-    # bias
-    b)
+# wide
+wide = mt.ops.MatMul(w, x1) # (1, 1)
 
+# deep
+embedding = mt.ops.MatMul(E, x1) # (k, 1)
+hidden_1 = mt.layer.FC(embedding, k, 8, "ReLU") # (8, 1)
+hidden_2 = mt.layer.FC(hidden_1, 8, 4, "ReLU") # (4, 1)
+deep = mt.layer.FC(hidden_2, 4, 1, "ReLU") # (1, 1)
+
+# output
+output = mt.ops.Add(wide, deep, b)
 predict = mt.ops.Logistic(output)
 loss = mt.ops.LogLoss(mt.ops.Multiply(label, output))
 optimizer = mt.optimizer.Adam(mt.default_graph, loss, lr)

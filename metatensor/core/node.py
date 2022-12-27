@@ -115,7 +115,6 @@ class Node(object):
             for child in self.children:
                 child.reset_value()
 
-
 class Variable(Node):
     """
     Variable node

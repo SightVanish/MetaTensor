@@ -179,7 +179,7 @@ class Reshape(Operator):
 
 class Concat(Operator):
     """
-    Concatenate nodes to one node.
+    Concatenate nodes to one node. Unfold all nodes in parents via row and concatenate to a (n, 1) node.
     """
     def compute(self):
         assert len(self.parents) > 1
@@ -199,6 +199,7 @@ class Concat(Operator):
         start_row = int(np.sum(dims[:index]))
         end_row = start_row + dim
         jacobi[start_row:end_row, :] = np.eye(dim)
+        return jacobi
 
 
 

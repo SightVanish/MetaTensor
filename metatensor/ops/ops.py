@@ -224,3 +224,61 @@ class Welding(Operator):
         # weld
         self.parents.append(node)
         node.children.append(self)
+
+class Convolve(Operator):
+    """
+    2-D convolution. parents[0] * parents[1]
+    """
+    def __init__(self, *parents, **kargs):
+        assert len(parents) == 2
+        Operator.__init__(self, *parents, **kargs)
+
+        self.padded = None
+    
+    def compute(self):
+        data = self.parents[0].value
+        kernel = self.parents[1].value
+        # weight, height
+        w, h = data.shape
+        kw, kh = kernel.shape
+        hkw, hkh = kw // 2, kh // 2 # half of kernel size
+
+        # padding
+        pw, ph = tuple(np.add(data.shape, np.multiply((hkw, hkh), 2))) # padded image size
+        self.padded = np.mat(np.zeros((pw, ph)))
+        self.padded[hkw:hkw+w, hkh:hkh+h] = data
+        
+        self.value = np.mat(np.zeros((w, h)))
+
+        # convolution
+        for i in range(hkw, hkw + w):
+            for j in range(hkh, hkh + h):
+                self.value[i-hkw, j-hkh] = np.sum(np.multiply(self.padded[i-hkw:i-hkw+kw, j-hkh:j-hkh+kh], kernel))
+
+    def get_jacobi(self, parent):
+        assert parent in self.parents
+        data = self.parents[0].value
+        kernel = self.parents[1].value
+
+        # weight, height
+        w, h = data.shape
+        kw, kh = kernel.shape
+        hkw, hkh = kw // 2, kh // 2 # half of kernel size
+
+        # padding
+        pw, ph = tuple(np.add(data.shape, np.multiply((hkw, hkh), 2))) # padded image size
+
+        # jacobi
+        jacobi = []
+        if parent is self.parents[0]:
+            for i in range(hkw, hkw + w):
+                for j in range(hkh, hkh + h):
+                    mask = np.mat(np.zeros(pw, ph))
+                    mask[i-hkw:i-hkw+kw, j-hkh:j-hkh+kh] = kernel
+                    jacobi.append(mask[hkw:hkw+w, hkh:hkh+h].A1)
+        elif parent is self.parents[1]:
+            for i in range(hkw, hkw + w):
+                for j in range(hkh, hkh + h):
+                    jacobi.append(self.padded[i-hkw:i-hkw+kw, j-hkh:j-hkh+kh].A1)
+
+        return np.mat(jacobi)

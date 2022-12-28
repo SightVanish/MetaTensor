@@ -126,8 +126,13 @@ for epoch in range(num_epoch):
     end_time = time.time()
     pred = []
     for i, s in enumerate(signal_test):
-        for j, x in enumerate(inputs):
-            x.set_value(np.mat(s[j]).T)
+        start = np.random.randint(len(s) // 3)
+        end = np.random.randint(len(s) // 3 + 30, len(s))
+        s = s[start: end]
+
+        for j in range(len(s)):
+            inputs[j].set_value(np.mat(s[j]).T)
+        welding_point.weld(hiddens[j])
         predict.forward()
         pred.append(predict.value.A.ravel())
     pred = np.array(pred).argmax(axis=1)

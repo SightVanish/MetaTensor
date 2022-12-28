@@ -16,3 +16,11 @@ def FC(input, input_size, output_size, activation):
         return Logistic(affine)
     else:
         return affine
+
+def conv(feature_maps, input_shape, kernels, kernel_shape, activation):
+    """
+    Convolution layer.
+    """
+    ones = Variable(dim=input_shape, init=False, trainable=False)
+
+

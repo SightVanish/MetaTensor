@@ -273,7 +273,7 @@ class Convolve(Operator):
         if parent is self.parents[0]:
             for i in range(hkw, hkw + w):
                 for j in range(hkh, hkh + h):
-                    mask = np.mat(np.zeros(pw, ph))
+                    mask = np.mat(np.zeros((pw, ph)))
                     mask[i-hkw:i-hkw+kw, j-hkh:j-hkh+kh] = kernel
                     jacobi.append(mask[hkw:hkw+w, hkh:hkh+h].A1)
         elif parent is self.parents[1]:
@@ -282,3 +282,57 @@ class Convolve(Operator):
                     jacobi.append(self.padded[i-hkw:i-hkw+kw, j-hkh:j-hkh+kh].A1)
 
         return np.mat(jacobi)
+
+class MaxPooling(Operator):
+    """
+    Max-pooling.
+    """
+    def __init__(self, *parents, **kargs):
+        """
+        # Parameters:
+        stride: kernel sliding stride
+        size: size of kernel
+        """
+        Operator.__init__(self, *parents, **kargs)
+
+        self.stride = kargs.get('stride')
+        assert isinstance(self.stride, tuple) and len(self.stride) == 2
+
+        self.size = kargs.get('size')
+        assert isinstance(self.size, tuple) and len(self.size) == 2
+
+        self.flag = None # record which elements are selected in max pooling
+    
+    def compute(self):
+        data = self.parents[0].value # feature maps
+        w, h = data.shape
+        dim = w * h
+        sw, sh = self.stride
+        hkw, hkh = sw // 2, sh // 2
+
+        result = []
+        flag = []
+        for i in range(0, w, sw):
+            row = [] # max values in this row
+            for j in range(0, h, sh):
+                # check pooling window boundary
+                top, bottom = max(0, i-hkw), min(w, i+hkw+1)
+                left, right = max(0, j-hkh), min(h, j+hkh+1)
+                window = data[top:bottom, left:right]
+                row.append(np.max(window))
+
+                # record the position of max value in pooling window
+                pos = np.argmax(window)
+                w_width = right - left
+                offset = (top + pos // w_width) * w + (left + pos % w_width)
+                tmp = np.zeros(dim)
+                tmp[offset] = 1
+                flag.append(tmp)
+            result.append(row)
+        self.flag = np.mat(flag)
+        self.value = np.mat(result)
+
+    def get_jacobi(self, parent):
+        assert parent is self.parents[0] and self.jacobi is not None
+        return self.flag
+                

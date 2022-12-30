@@ -11,7 +11,7 @@ Parser.
 """
 parser = argparse.ArgumentParser()
 parser.add_argument('--num_epoch', type=int, default=8)
-parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
+parser.add_argument('--lr', type=float, default=3e-3, help='learning rate')
 parser.add_argument('--batch_size', type=int, default=64)
 args = parser.parse_args()
 """
@@ -63,7 +63,7 @@ for epoch in range(num_epoch):
         batch_count += 1
         if (batch_count == batch_size):
             iter_end_time = time.time()
-            print("epoch: {:d}, {:.3f} sec/iter, iter: {:d}/{:d}, loss: {:3f}".format(epoch + 1, iter_end_time - iter_start_time, i + 1, len(X), loss.value[0, 0]))
+            # print("epoch: {:d}, {:.3f} sec/iter, iter: {:d}/{:d}, loss: {:3f}".format(epoch + 1, iter_end_time - iter_start_time, i + 1, len(X), loss.value[0, 0]))
             iter_start_time = time.time()
 
             optimizer.update()

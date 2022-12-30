@@ -21,7 +21,7 @@ def fill_diagonal(target, filler):
 
 class Operator(Node):
     """
-    Base class, same with Node.
+    Abstract class for operators.
     """
     pass
 

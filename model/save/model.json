@@ -1,0 +1,119 @@
+{
+    "meta": {
+        "save_time": "2022-12-30 15:35:01.886183",
+        "weights_file_name": "weights.npz"
+    },
+    "service": {},
+    "graph": [
+        {
+            "node_type": "Variable",
+            "name": "input_node",
+            "parents": [],
+            "children": [
+                "MatMul:4"
+            ],
+            "kargs": {},
+            "dim": [
+                784,
+                1
+            ]
+        },
+        {
+            "node_type": "Variable",
+            "name": "Variable:1",
+            "parents": [],
+            "children": [
+                "CrossEntropyWithSoftMax:7",
+                "Accuray:8",
+                "Precision:9",
+                "Recall:10"
+            ],
+            "kargs": {},
+            "dim": [
+                10,
+                1
+            ]
+        },
+        {
+            "node_type": "Variable",
+            "name": "Variable:2",
+            "parents": [],
+            "children": [
+                "MatMul:4"
+            ],
+            "kargs": {},
+            "dim": [
+                10,
+                784
+            ]
+        },
+        {
+            "node_type": "Variable",
+            "name": "Variable:3",
+            "parents": [],
+            "children": [
+                "Add:5"
+            ],
+            "kargs": {},
+            "dim": [
+                10,
+                1
+            ]
+        },
+        {
+            "node_type": "MatMul",
+            "name": "MatMul:4",
+            "parents": [
+                "Variable:2",
+                "input_node"
+            ],
+            "children": [
+                "Add:5"
+            ],
+            "kargs": {},
+            "dim": [
+                10,
+                1
+            ]
+        },
+        {
+            "node_type": "Add",
+            "name": "Add:5",
+            "parents": [
+                "MatMul:4",
+                "Variable:3"
+            ],
+            "children": [
+                "predict",
+                "CrossEntropyWithSoftMax:7",
+                "Accuray:8",
+                "Precision:9",
+                "Recall:10"
+            ],
+            "kargs": {},
+            "dim": [
+                10,
+                1
+            ]
+        },
+        {
+            "node_type": "SoftMax",
+            "name": "predict",
+            "parents": [
+                "Add:5"
+            ],
+            "children": [],
+            "kargs": {}
+        },
+        {
+            "node_type": "CrossEntropyWithSoftMax",
+            "name": "CrossEntropyWithSoftMax:7",
+            "parents": [
+                "Add:5",
+                "Variable:1"
+            ],
+            "children": [],
+            "kargs": {}
+        }
+    ]
+}
